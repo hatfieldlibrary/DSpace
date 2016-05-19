@@ -10,6 +10,7 @@ package org.dspace.rest;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.core.Constants;
+import org.dspace.eperson.Group;
 import org.dspace.handle.HandleManager;
 import org.dspace.rest.common.Collection;
 import org.dspace.rest.common.Community;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.SQLException;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -35,25 +37,43 @@ import java.sql.SQLException;
 public class HandleResource extends Resource {
     private static Logger log = Logger.getLogger(HandleResource.class);
 
+// Removed in 5.5.   --mspalti
+// private static org.dspace.core.Context context;
+
     @GET
     @Path("/{prefix}/{suffix}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public org.dspace.rest.common.DSpaceObject getObject(@PathParam("prefix") String prefix,
-            @PathParam("suffix") String suffix, @QueryParam("expand") String expand,
-            @Context HttpHeaders headers) throws WebApplicationException{
+                                                         @PathParam("suffix") String suffix, @QueryParam("expand") String expand,
+                                                         @Context HttpHeaders headers) throws WebApplicationException{
         org.dspace.core.Context context = null;
+
+        // Added. Present in 5.5.  --mspalti
         DSpaceObject result = null;
 
         try {
             context = createContext(getUser(headers));
 
+            setSpecialGroups(context, headers);
+
+            Set<Integer> testGroups = Group.allMemberGroupIDs(context, context.getCurrentUser());
+            // for now, this is just verifying groups.
+            log.debug("Handle: Groups length is " + testGroups.size());
+            for (Integer groupID: testGroups) {
+                log.debug("Group ID: " + groupID);
+            }
+
+
             org.dspace.content.DSpaceObject dso = HandleManager.resolveToObject(context, prefix + "/" + suffix);
             if(dso == null) {
                 throw new WebApplicationException(Response.Status.NOT_FOUND);
             }
+
             log.info("DSO Lookup by handle: [" + prefix + "] / [" + suffix + "] got result of: " + dso.getTypeText() + "_" + dso.getID());
 
             if(AuthorizeManager.authorizeActionBoolean(context, dso, org.dspace.core.Constants.READ)) {
+
+                // Removed returns and added break statements. Present in 5.5.  --mspalti
                 switch(dso.getType()) {
                     case Constants.COMMUNITY:
                         result = new Community((org.dspace.content.Community) dso, expand, context);
@@ -71,6 +91,7 @@ public class HandleResource extends Resource {
                 throw new WebApplicationException(Response.Status.UNAUTHORIZED);
             }
 
+            // This is necessary. Without it, processFinally will throw 500. Present in 5.5. --mspalti
             context.complete();
 
         } catch (SQLException e) {
@@ -78,9 +99,10 @@ public class HandleResource extends Resource {
         } catch (ContextException e) {
             processException("Could not read handle(" + prefix  + "/" + suffix + "), ContextException. Message: " + e.getMessage(), context);
         } finally{
-           processFinally(context);
+            processFinally(context);
         }
 
+        // Return DspaceObject. As in 5.5 --mspalti
         return result;
     }
 }

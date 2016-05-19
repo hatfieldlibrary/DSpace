@@ -12,6 +12,7 @@ import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Bundle;
 import org.dspace.content.Metadatum;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
 import javax.ws.rs.WebApplicationException;
@@ -35,15 +36,17 @@ import java.util.List;
 public class Item extends DSpaceObject {
     Logger log = Logger.getLogger(Item.class);
 
-    String isArchived;
-    String isWithdrawn;
-    String lastModified;
+    private String isArchived;
+    private String isWithdrawn;
+    private String lastModified;
 
-    Collection parentCollection;
-    List<Collection> parentCollectionList;
-    List<Community> parentCommunityList;
-    List<MetadataEntry> metadata;
-    List<Bitstream> bitstreams;
+    private Collection parentCollection;
+    private List<Collection> parentCollectionList;
+    private List<Community> parentCommunityList;
+    private List<MetadataEntry> metadata;
+    private List<Bitstream> bitstreams;
+
+    private Permission permission;
 
     public Item(){}
 
@@ -99,6 +102,17 @@ public class Item extends DSpaceObject {
         } else {
             this.addExpand("parentCommunityList");
         }
+
+        if(expandFields.contains("permission") | expandFields.contains("all")) {
+            boolean canSubmit = AuthorizeManager.authorizeActionBoolean(context, item, Constants.ADD);
+            boolean canAdminister = AuthorizeManager.authorizeActionBoolean(context, item, Constants.ADMIN);
+            boolean canWrite = AuthorizeManager.authorizeActionBoolean(context, item, Constants.WRITE);
+            this.setPermission(new Permission(canSubmit, canAdminister, canWrite));
+
+        } else {
+            this.addExpand("permission");
+        }
+
 
         //TODO: paging - offset, limit
         if(expandFields.contains("bitstreams") || expandFields.contains("all")) {
@@ -165,24 +179,31 @@ public class Item extends DSpaceObject {
         return parentCommunityList;
     }
 
-	public void setParentCollection(Collection parentCollection) {
-		this.parentCollection = parentCollection;
-	}
+    public void setParentCollection(Collection parentCollection) {
+        this.parentCollection = parentCollection;
+    }
 
-	public void setParentCollectionList(List<Collection> parentCollectionList) {
-		this.parentCollectionList = parentCollectionList;
-	}
+    public void setParentCollectionList(List<Collection> parentCollectionList) {
+        this.parentCollectionList = parentCollectionList;
+    }
 
-	public void setParentCommunityList(List<Community> parentCommunityList) {
-		this.parentCommunityList = parentCommunityList;
-	}
+    public void setParentCommunityList(List<Community> parentCommunityList) {
+        this.parentCommunityList = parentCommunityList;
+    }
 
-	@XmlElement(required = true)
-	public void setMetadata(List<MetadataEntry> metadata) {
-		this.metadata = metadata;
-	}
+    @XmlElement(required = true)
+    public void setMetadata(List<MetadataEntry> metadata) {
+        this.metadata = metadata;
+    }
 
-	public void setBitstreams(List<Bitstream> bitstreams) {
-		this.bitstreams = bitstreams;
-	}
+    public void setBitstreams(List<Bitstream> bitstreams) {
+        this.bitstreams = bitstreams;
+    }
+
+    public void setPermission(Permission permission) {this.permission = permission; }
+
+    public Permission getPermission() {
+        return permission;
+    }
+
 }

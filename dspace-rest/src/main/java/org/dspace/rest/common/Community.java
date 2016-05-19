@@ -9,6 +9,7 @@ package org.dspace.rest.common;
 
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
 import javax.ws.rs.WebApplicationException;
@@ -37,6 +38,9 @@ public class Community extends DSpaceObject{
 
     private String copyrightText, introductoryText, shortDescription, sidebarText;
     private Integer countItems;
+
+    // User authorization
+    private Permission permission;
 
     private List<Community> subcommunities = new ArrayList<Community>();
 
@@ -89,7 +93,7 @@ public class Community extends DSpaceObject{
             subcommunities = new ArrayList<Community>();
             for(org.dspace.content.Community subCommunity : communityArray) {
                 if(AuthorizeManager.authorizeActionBoolean(context, subCommunity, org.dspace.core.Constants.READ)) {
-                	subcommunities.add(new Community(subCommunity, null, context));
+                    subcommunities.add(new Community(subCommunity, null, context));
                 } else {
                     log.info("Omitted restricted subCommunity: " + subCommunity.getID() + " _ " + subCommunity.getName());
                 }
@@ -104,6 +108,16 @@ public class Community extends DSpaceObject{
             }
         } else {
             this.addExpand("logo");
+        }
+
+        if(expandFields.contains("permission") | expandFields.contains("all")) {
+            boolean canSubmit = AuthorizeManager.authorizeActionBoolean(context, community, Constants.ADD);
+            boolean canAdminister = AuthorizeManager.authorizeActionBoolean(context, community, Constants.ADMIN);
+            boolean canWrite = AuthorizeManager.authorizeActionBoolean(context, community, Constants.WRITE);
+            this.setPermission(new Permission(canSubmit, canAdminister, canWrite));
+
+        } else {
+            this.addExpand("permission");
         }
 
         if(!expandFields.contains("all")) {
@@ -177,12 +191,18 @@ public class Community extends DSpaceObject{
 
     // Renamed because of xml annotation exception with this attribute and getSubCommunities.
     @XmlElement(name = "subcommunities", required = true)
-	public List<Community> getSubcommunities() {
-		return subcommunities;
-	}
-	
-	public void setSubcommunities(List<Community> subcommunities) {
-		this.subcommunities = subcommunities;
-	}
-    
+    public List<Community> getSubcommunities() {
+        return subcommunities;
+    }
+
+    public void setSubcommunities(List<Community> subcommunities) {
+        this.subcommunities = subcommunities;
+    }
+
+    public void setPermission(Permission permission) {this.permission = permission; }
+
+    public Permission getPermission() {
+        return permission;
+    }
+
 }

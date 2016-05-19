@@ -7,40 +7,31 @@
  */
 package org.dspace.rest;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.eperson.Group;
 import org.dspace.rest.common.Collection;
 import org.dspace.rest.common.Community;
 import org.dspace.rest.exceptions.ContextException;
 import org.dspace.usage.UsageEvent;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Set;
+
 /**
  * Class which provides CRUD methods over communities.
- * 
+ *
  * @author Rostislav Novak (Computing and Information Centre, CTU in Prague)
- * 
+ *
  */
 @Path("/communities")
 public class CommunitiesResource extends Resource
@@ -50,7 +41,7 @@ public class CommunitiesResource extends Resource
     /**
      * Returns community with basic properties. If you want more, use expand
      * parameter or method for community collections or subcommunities.
-     * 
+     *
      * @param communityId
      *            Id of community in DSpace.
      * @param expand
@@ -72,8 +63,8 @@ public class CommunitiesResource extends Resource
     @Path("/{community_id}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Community getCommunity(@PathParam("community_id") Integer communityId, @QueryParam("expand") String expand,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                  @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                  @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -84,6 +75,26 @@ public class CommunitiesResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            /**
+             * Add groups to current context before returning eperson.
+             */
+            int[] specialGroups = getGroups(headers);
+
+            if (specialGroups != null) {
+                for (int i = 0; i < specialGroups.length; i++) {
+                    context.setSpecialGroup(specialGroups[i]);
+                }
+            }
+
+            log.debug("Special groups in communities " + context.getSpecialGroups().length);
+
+            Set<Integer> testGroups = Group.allMemberGroupIDs(context, context.getCurrentUser());
+            // for now, this is just verifying groups.
+            log.debug("Communities: Groups length is " + testGroups.size());
+            for (Integer groupID: testGroups) {
+                log.debug("Group ID: " + groupID);
+            }
 
             org.dspace.content.Community dspaceCommunity = findCommunity(context, communityId, org.dspace.core.Constants.READ);
             writeStats(dspaceCommunity, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers,
@@ -114,13 +125,13 @@ public class CommunitiesResource extends Resource
 
     /**
      * Return all communities in DSpace.
-     * 
+     *
      * @param expand
      *            String in which is what you want to add to returned instance
      *            of community. Options are: "all", "parentCommunity",
      *            "collections", "subCommunities" and "logo". If you want to use
      *            multiple options, it must be separated by commas.
-     * 
+     *
      * @param limit
      *            Maximum communities in array. Default value is 100.
      * @param offset
@@ -137,9 +148,9 @@ public class CommunitiesResource extends Resource
     @GET
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Community[] getCommunities(@QueryParam("expand") String expand,
-            @QueryParam("limit") @DefaultValue("100") Integer limit, @QueryParam("offset") @DefaultValue("0") Integer offset,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                      @QueryParam("limit") @DefaultValue("100") Integer limit, @QueryParam("offset") @DefaultValue("0") Integer offset,
+                                      @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                      @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -151,6 +162,8 @@ public class CommunitiesResource extends Resource
         {
             context = createContext(getUser(headers));
 
+            setSpecialGroups(context, headers);
+
             org.dspace.content.Community[] dspaceCommunities = org.dspace.content.Community.findAll(context);
             communities = new ArrayList<Community>();
 
@@ -160,6 +173,7 @@ public class CommunitiesResource extends Resource
                 limit = 100;
                 offset = 0;
             }
+
 
             for (int i = offset; (i < (offset + limit)) && i < dspaceCommunities.length; i++)
             {
@@ -194,13 +208,13 @@ public class CommunitiesResource extends Resource
     /**
      * Return all top communities in DSpace. Top communities are communities on
      * the root of tree.
-     * 
+     *
      * @param expand
      *            String in which is what you want to add to returned instance
      *            of community. Options are: "all", "parentCommunity",
      *            "collections", "subCommunities" and "logo". If you want to use
      *            multiple options, it must be separated by commas.
-     * 
+     *
      * @param limit
      *            Maximum communities in array. Default value is 100.
      * @param offset
@@ -219,9 +233,9 @@ public class CommunitiesResource extends Resource
     @Path("/top-communities")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Community[] getTopCommunities(@QueryParam("expand") String expand,
-            @QueryParam("limit") @DefaultValue("20") Integer limit, @QueryParam("offset") @DefaultValue("0") Integer offset,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                         @QueryParam("limit") @DefaultValue("20") Integer limit, @QueryParam("offset") @DefaultValue("0") Integer offset,
+                                         @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                         @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -275,7 +289,7 @@ public class CommunitiesResource extends Resource
 
     /**
      * Return all collections of community.
-     * 
+     *
      * @param communityId
      *            Id of community in DSpace.
      * @param expand
@@ -301,10 +315,10 @@ public class CommunitiesResource extends Resource
     @Path("/{community_id}/collections")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Collection[] getCommunityCollections(@PathParam("community_id") Integer communityId,
-            @QueryParam("expand") String expand, @QueryParam("limit") @DefaultValue("100") Integer limit,
-            @QueryParam("offset") @DefaultValue("0") Integer offset, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                                                @QueryParam("expand") String expand, @QueryParam("limit") @DefaultValue("100") Integer limit,
+                                                @QueryParam("offset") @DefaultValue("0") Integer offset, @QueryParam("userIP") String user_ip,
+                                                @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                                                @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Reading community(id=" + communityId + ") collections.");
@@ -361,7 +375,7 @@ public class CommunitiesResource extends Resource
 
     /**
      * Return all subcommunities of community.
-     * 
+     *
      * @param communityId
      *            Id of community in DSpace.
      * @param expand
@@ -387,10 +401,10 @@ public class CommunitiesResource extends Resource
     @Path("/{community_id}/communities")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Community[] getCommunityCommunities(@PathParam("community_id") Integer communityId,
-            @QueryParam("expand") String expand, @QueryParam("limit") @DefaultValue("20") Integer limit,
-            @QueryParam("offset") @DefaultValue("0") Integer offset, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                                               @QueryParam("expand") String expand, @QueryParam("limit") @DefaultValue("20") Integer limit,
+                                               @QueryParam("offset") @DefaultValue("0") Integer offset, @QueryParam("userIP") String user_ip,
+                                               @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                                               @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Reading community(id=" + communityId + ") subcommunities.");
@@ -449,7 +463,7 @@ public class CommunitiesResource extends Resource
     /**
      * Create community at top level. Creating community at top level has
      * permission only admin.
-     * 
+     *
      * @param community
      *            Community which will be created at top level of communities.
      * @param headers
@@ -464,8 +478,8 @@ public class CommunitiesResource extends Resource
     @POST
     @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Community createCommunity(Community community, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                                     @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                                     @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Creating community at top level.");
@@ -527,7 +541,7 @@ public class CommunitiesResource extends Resource
 
     /**
      * Create collection in community.
-     * 
+     *
      * @param communityId
      *            Id of community in DSpace.
      * @param collection
@@ -548,8 +562,8 @@ public class CommunitiesResource extends Resource
     @Path("/{community_id}/collections")
     @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Collection addCommunityCollection(@PathParam("community_id") Integer communityId, Collection collection,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                             @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                             @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -610,7 +624,7 @@ public class CommunitiesResource extends Resource
 
     /**
      * Create subcommunity in community.
-     * 
+     *
      * @param communityId
      *            Id of community in DSpace, in which will be created
      *            subcommunity.
@@ -632,8 +646,8 @@ public class CommunitiesResource extends Resource
     @Path("/{community_id}/communities")
     @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Community addCommunityCommunity(@PathParam("community_id") Integer communityId, Community community,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                           @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                           @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -691,7 +705,7 @@ public class CommunitiesResource extends Resource
     /**
      * Update community. Replace all information about community except: id,
      * handle and expandle items.
-     * 
+     *
      * @param communityId
      *            Id of community in DSpace.
      * @param community
@@ -712,8 +726,8 @@ public class CommunitiesResource extends Resource
     @Path("/{community_id}")
     @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Response updateCommunity(@PathParam("community_id") Integer communityId, Community community,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                    @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                    @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -762,7 +776,7 @@ public class CommunitiesResource extends Resource
 
     /**
      * Delete community from DSpace. It delete it everything with community!
-     * 
+     *
      * @param communityId
      *            Id of community in DSpace.
      * @param headers
@@ -780,8 +794,8 @@ public class CommunitiesResource extends Resource
     @DELETE
     @Path("/{community_id}")
     public Response deleteCommunity(@PathParam("community_id") Integer communityId, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                                    @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                                    @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Deleting community(id=" + communityId + ").");
@@ -828,7 +842,7 @@ public class CommunitiesResource extends Resource
 
     /**
      * Delete collection in community.
-     * 
+     *
      * @param communityId
      *            Id of community in DSpace.
      * @param collectionId
@@ -849,9 +863,9 @@ public class CommunitiesResource extends Resource
     @DELETE
     @Path("/{community_id}/collections/{collection_id}")
     public Response deleteCommunityCollection(@PathParam("community_id") Integer communityId,
-            @PathParam("collection_id") Integer collectionId, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                                              @PathParam("collection_id") Integer collectionId, @QueryParam("userIP") String user_ip,
+                                              @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                                              @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Deleting collection(id=" + collectionId + ") in community(id=" + communityId + ").");
@@ -934,7 +948,7 @@ public class CommunitiesResource extends Resource
 
     /**
      * Delete subcommunity in community.
-     * 
+     *
      * @param parentCommunityId
      *            Id of community in DSpace.
      * @param subcommunityId
@@ -955,9 +969,9 @@ public class CommunitiesResource extends Resource
     @DELETE
     @Path("/{community_id}/communities/{community_id2}")
     public Response deleteCommunityCommunity(@PathParam("community_id") Integer parentCommunityId,
-            @PathParam("community_id2") Integer subcommunityId, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                                             @PathParam("community_id2") Integer subcommunityId, @QueryParam("userIP") String user_ip,
+                                             @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                                             @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Deleting community(id=" + parentCommunityId + ").");
@@ -1042,7 +1056,7 @@ public class CommunitiesResource extends Resource
      * Find community from DSpace database. It is encapsulation of method
      * org.dspace.content.Community.find with checking if item exist and if user
      * logged into context has permission to do passed action.
-     * 
+     *
      * @param context
      *            Context of actual logged user.
      * @param id

@@ -7,16 +7,6 @@
  */
 package org.dspace.rest;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import org.apache.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
@@ -26,14 +16,23 @@ import org.dspace.rest.exceptions.ContextException;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Superclass of all resource classes in REST API. It has methods for creating
  * context, write statistics, processsing exceptions, splitting a key of
  * metadata, string representation of action and method for getting the logged
  * in user from the token in request header.
- * 
+ *
  * @author Rostislav Novak (Computing and Information Centre, CTU in Prague)
- * 
+ *
  */
 public class Resource
 {
@@ -58,7 +57,7 @@ public class Resource
      * with reading from database. Throws AuthorizeException if there was
      * a problem with authorization to read from the database. Throws Exception
      * if there was a problem creating context.
-     * 
+     *
      * @param person
      *            User which will be logged in context.
      * @return Newly created context with the logged in user unless the specified user was null.
@@ -133,7 +132,7 @@ public class Resource
     /**
      * Process exception, print message to logger error stream and abort DSpace
      * context.
-     * 
+     *
      * @param message
      *            Message, which will be printed to error stream.
      * @param context
@@ -172,7 +171,7 @@ public class Resource
 
     /**
      * Split string with regex ".".
-     * 
+     *
      * @param key
      *            String which will be splitted.
      * @return String array filed with separated string.
@@ -205,7 +204,7 @@ public class Resource
     /**
      * Return string representation of values
      * org.dspace.core.Constants.{READ,WRITE,DELETE}.
-     * 
+     *
      * @param action
      *            Constant from org.dspace.core.Constants.*
      * @return String representation. read or write or delete.
@@ -215,24 +214,24 @@ public class Resource
         String actionStr;
         switch (action)
         {
-        case org.dspace.core.Constants.READ:
-            actionStr = "read";
-            break;
-        case org.dspace.core.Constants.WRITE:
-            actionStr = "write";
-            break;
-        case org.dspace.core.Constants.DELETE:
-            actionStr = "delete";
-            break;
-        case org.dspace.core.Constants.REMOVE:
-            actionStr = "remove";
-            break;
-        case org.dspace.core.Constants.ADD:
-            actionStr = "add";
-            break;
-        default:
-            actionStr = "(?action?)";
-            break;
+            case org.dspace.core.Constants.READ:
+                actionStr = "read";
+                break;
+            case org.dspace.core.Constants.WRITE:
+                actionStr = "write";
+                break;
+            case org.dspace.core.Constants.DELETE:
+                actionStr = "delete";
+                break;
+            case org.dspace.core.Constants.REMOVE:
+                actionStr = "remove";
+                break;
+            case org.dspace.core.Constants.ADD:
+                actionStr = "add";
+                break;
+            default:
+                actionStr = "(?action?)";
+                break;
         }
         return actionStr;
     }
@@ -240,9 +239,9 @@ public class Resource
     /**
      * Return EPerson based on stored token in headers under
      * "rest-dspace-token".
-     * 
+     *
      * @param headers
-     *            Only must have "rest-api-token" for successfull return of
+     *            Only must have "rest-api-token" for successful return of
      *            user.
      * @return Return EPerson logged under token in headers. If token was wrong
      *         or header rest-dspace-token was missing, returns null.
@@ -259,6 +258,24 @@ public class Resource
         return null;
     }
 
+    /**
+     * Return array of special group ids using the stored token
+     * @param headers  Must have "rest-api-token" for successful return of
+     *            groups.
+     * @return  Array of special group ids or null if token was wrong or missing.
+     */
+    protected static int[] getGroups(HttpHeaders headers)
+    {
+        List<String> list = headers.getRequestHeader(TokenHolder.TOKEN_HEADER);
+        String token = null;
+        if ((list != null) && (list.size() > 0))
+        {
+            token = list.get(0);
+            return TokenHolder.getGroups(token);
+        }
+        return null;
+    }
+
     protected static String getToken(HttpHeaders headers) {
         List<String> list = headers.getRequestHeader(TokenHolder.TOKEN_HEADER);
         String token = null;
@@ -268,5 +285,21 @@ public class Resource
             return token;
         }
         return null;
+    }
+
+    /**
+     * Add special groups to the context. Stored group ids are retrieved using
+     * the token in the header.
+     * @param context  Dspace context
+     * @param headers   Request headers.
+     */
+    protected static void setSpecialGroups(Context context, HttpHeaders headers) {
+
+        int[] specialGroups = getGroups(headers);
+        if (specialGroups != null) {
+            for (int i = 0; i < specialGroups.length; i++) {
+                context.setSpecialGroup(specialGroups[i]);
+            }
+        }
     }
 }
