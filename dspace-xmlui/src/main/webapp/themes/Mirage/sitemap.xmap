@@ -74,6 +74,8 @@
                 <map:parameter name="stylesheet.screen#4" value="lib/css/jquery-ui-1.8.15.custom.css"/>
                 <map:parameter name="stylesheet.screen#5" value="lib/css/style.css"/>
                 <map:parameter name="stylesheet.screen#6" value="lib/css/authority-control.css"/>
+                <map:parameter name="stylesheet.screen#7" value="lib/css/wu.css"/>
+
             </map:transform>
             <map:transform type="IncludePageMeta">
                 <map:parameter name="stylesheet.handheld" value="lib/css/handheld.css"/>
@@ -92,7 +94,7 @@
             <map:match type="request" pattern="XML">
                 <map:serialize type="xml"/>
             </map:match>
-                      
+
             <!-- Transform DRI to XHTML using the Theme's XSLT(s) -->
             <map:transform src="{global:theme-path}.xsl"/>
 
@@ -122,10 +124,10 @@
             </global-variables>
         </map:component-configurations>
 
-        <!-- 
+        <!--
              Caching Pipeline: This caching pipeline handles access to static content (css, js, etc)
              which is used by this Theme. These static files are simply passed directly to
-             the user's browser without any proccesing.  
+             the user's browser without any proccesing.
         -->
         <map:pipeline>
             <!-- Allow the browser to cache static content for an hour -->
@@ -150,12 +152,12 @@
 
             <!-- Static content -->
             <map:match pattern="themes/*/**">
-                <map:read type="ThemeResourceReader" src="{2}"/>
+                <map:read src="{2}"/>
             </map:match>
         </map:pipeline>
 
         <!--
-             Primary (non-caching) Pipeline: 
+             Primary (non-caching) Pipeline:
              This pipeline is the one that generates *dynamic* content. It first creates
              the DRI (XML) by calling the Aspect chain. Then it transforms that DRI
              into the XHTML page which is passed to the user.
@@ -171,7 +173,7 @@
                 <map:generate type="file" src="cocoon://DRI/{1}"/>
 
                 <!-- Step 2: Transform the DRI page into XHTML -->
-                <!-- This line calls the resource named 'transform-to-xhtml' (included above). 
+                <!-- This line calls the resource named 'transform-to-xhtml' (included above).
                      That resource is in charge of tranforming this DRI content into XHTML -->
                 <map:call resource="transform-to-xhtml"/>
 
@@ -179,7 +181,7 @@
                 <map:serialize type="xhtml"/>
             </map:match>
         </map:pipeline>
-        
+
         <!--
             Handle any errors which are thrown during any step in the above pipelines.
             This would include simple invalid URL errors (404 page not found), as well as
@@ -197,7 +199,7 @@
             <!-- Step 3: Transform that DRI formatted exception into XHTML (using our Theme) -->
             <map:call resource="transform-to-xhtml"/>
 
-            <!-- Step 4: Serialize XHTML page to user's brower. Based on the type of error, 
+            <!-- Step 4: Serialize XHTML page to user's brower. Based on the type of error,
                          provide a different HTTP response code. -->
             <map:select type="exception">
                 <!-- HTTP 400 Bad Request -->
