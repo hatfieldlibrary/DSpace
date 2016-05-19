@@ -13,6 +13,7 @@ import java.util.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -51,9 +52,9 @@ import org.dspace.usage.UsageEvent;
 
 /**
  * Class which provide all CRUD methods over items.
- * 
+ *
  * @author Rostislav Novak (Computing and Information Centre, CTU in Prague)
- * 
+ *
  */
 // Every DSpace class used without namespace is from package org.dspace.rest.common.*. Otherwise namespace is defined.
 @SuppressWarnings("deprecation")
@@ -66,7 +67,7 @@ public class ItemsResource extends Resource
     /**
      * Return item properties without metadata and bitstreams. You can add
      * additional properties by parameter expand.
-     * 
+     *
      * @param itemId
      *            Id of item in DSpace.
      * @param expand
@@ -91,8 +92,8 @@ public class ItemsResource extends Resource
     @Path("/{item_id}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Item getItem(@PathParam("item_id") Integer itemId, @QueryParam("expand") String expand,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                        @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                        @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -103,6 +104,16 @@ public class ItemsResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
+
+            Set<Integer> testGroups = Group.allMemberGroupIDs(context, context.getCurrentUser());
+            // for now, this is just verifying groups.
+            log.debug("Item: Groups length is " + testGroups.size());
+            for (Integer groupID: testGroups) {
+                log.debug("Group ID: " + groupID);
+            }
+
             org.dspace.content.Item dspaceItem = findItem(context, itemId, org.dspace.core.Constants.READ);
 
             writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers, request, context);
@@ -132,7 +143,7 @@ public class ItemsResource extends Resource
      * It returns an array of items in DSpace. You can define how many items in
      * list will be and from which index will start. Items in list are sorted by
      * handle, not by id.
-     * 
+     *
      * @param limit
      *            How many items in array will be. Default value is 100.
      * @param offset
@@ -151,9 +162,9 @@ public class ItemsResource extends Resource
     @GET
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Item[] getItems(@QueryParam("expand") String expand, @QueryParam("limit") @DefaultValue("100") Integer limit,
-            @QueryParam("offset") @DefaultValue("0") Integer offset, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                           @QueryParam("offset") @DefaultValue("0") Integer offset, @QueryParam("userIP") String user_ip,
+                           @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                           @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Reading items.(offset=" + offset + ",limit=" + limit + ").");
@@ -208,7 +219,7 @@ public class ItemsResource extends Resource
 
     /**
      * Returns item metadata in list.
-     * 
+     *
      * @param itemId
      *            Id of item in DSpace.
      * @param headers
@@ -228,8 +239,8 @@ public class ItemsResource extends Resource
     @Path("/{item_id}/metadata")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public MetadataEntry[] getItemMetadata(@PathParam("item_id") Integer itemId, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                                           @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                                           @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Reading item(id=" + itemId + ") metadata.");
@@ -265,7 +276,7 @@ public class ItemsResource extends Resource
 
     /**
      * Return array of bitstreams in item. It can be pagged.
-     * 
+     *
      * @param itemId
      *            Id of item in DSpace.
      * @param limit
@@ -286,9 +297,9 @@ public class ItemsResource extends Resource
     @Path("/{item_id}/bitstreams")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Bitstream[] getItemBitstreams(@PathParam("item_id") Integer itemId,
-            @QueryParam("limit") @DefaultValue("20") Integer limit, @QueryParam("offset") @DefaultValue("0") Integer offset,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                         @QueryParam("limit") @DefaultValue("20") Integer limit, @QueryParam("offset") @DefaultValue("0") Integer offset,
+                                         @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                         @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -335,7 +346,7 @@ public class ItemsResource extends Resource
     /**
      * Adding metadata fields to item. If metadata key is in item, it will be
      * added, NOT REPLACED!
-     * 
+     *
      * @param itemId
      *            Id of item in DSpace.
      * @param metadata
@@ -358,8 +369,8 @@ public class ItemsResource extends Resource
     @Path("/{item_id}/metadata")
     @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Response addItemMetadata(@PathParam("item_id") Integer itemId, List<org.dspace.rest.common.MetadataEntry> metadata,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                    @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                    @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -410,7 +421,7 @@ public class ItemsResource extends Resource
 
     /**
      * Create bitstream in item.
-     * 
+     *
      * @param itemId
      *            Id of item in DSpace.
      * @param inputStream
@@ -435,10 +446,10 @@ public class ItemsResource extends Resource
     @POST
     @Path("/{item_id}/bitstreams")
     public Bitstream addItemBitstream(@PathParam("item_id") Integer itemId, InputStream inputStream,
-            @QueryParam("name") String name, @QueryParam("description") String description,
-            @QueryParam("groupId") Integer groupId, @QueryParam("year") Integer year, @QueryParam("month") Integer month,
-            @QueryParam("day") Integer day, @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                      @QueryParam("name") String name, @QueryParam("description") String description,
+                                      @QueryParam("groupId") Integer groupId, @QueryParam("year") Integer year, @QueryParam("month") Integer month,
+                                      @QueryParam("day") Integer day, @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                      @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -458,10 +469,10 @@ public class ItemsResource extends Resource
             org.dspace.content.Bundle bundle = null;
             org.dspace.content.Bitstream dspaceBitstream = null;
             Bundle[] bundles = dspaceItem.getBundles("ORIGINAL");
-			if(bundles != null && bundles.length != 0)
-			{
-				bundle = bundles[0]; // There should be only one bundle ORIGINAL.
-			}
+            if(bundles != null && bundles.length != 0)
+            {
+                bundle = bundles[0]; // There should be only one bundle ORIGINAL.
+            }
             if (bundle == null)
             {
                 log.trace("Creating bundle in item.");
@@ -583,7 +594,7 @@ public class ItemsResource extends Resource
 
     /**
      * Replace all metadata in item with new passed metadata.
-     * 
+     *
      * @param itemId
      *            Id of item in DSpace.
      * @param metadata
@@ -606,8 +617,8 @@ public class ItemsResource extends Resource
     @Path("/{item_id}/metadata")
     @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Response updateItemMetadata(@PathParam("item_id") Integer itemId, MetadataEntry[] metadata,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                       @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                       @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -669,7 +680,7 @@ public class ItemsResource extends Resource
 
     /**
      * Delete item from DSpace. It delete bitstreams only from item bundle.
-     * 
+     *
      * @param itemId
      *            Id of item which will be deleted.
      * @param headers
@@ -689,8 +700,8 @@ public class ItemsResource extends Resource
     @DELETE
     @Path("/{item_id}")
     public Response deleteItem(@PathParam("item_id") Integer itemId, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                               @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                               @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Deleting item(id=" + itemId + ").");
@@ -738,7 +749,7 @@ public class ItemsResource extends Resource
 
     /**
      * Delete all item metadata.
-     * 
+     *
      * @param itemId
      *            Id of item in DSpace.
      * @param headers
@@ -758,8 +769,8 @@ public class ItemsResource extends Resource
     @DELETE
     @Path("/{item_id}/metadata")
     public Response deleteItemMetadata(@PathParam("item_id") Integer itemId, @QueryParam("userIP") String user_ip,
-            @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
-            @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
+                                       @QueryParam("userAgent") String user_agent, @QueryParam("xforwardedfor") String xforwardedfor,
+                                       @Context HttpHeaders headers, @Context HttpServletRequest request) throws WebApplicationException
     {
 
         log.info("Deleting metadata in item(id=" + itemId + ").");
@@ -816,7 +827,7 @@ public class ItemsResource extends Resource
 
     /**
      * Delete bitstream from item bundle.
-     * 
+     *
      * @param itemId
      *            Id of item in DSpace.
      * @param headers
@@ -838,8 +849,8 @@ public class ItemsResource extends Resource
     @DELETE
     @Path("/{item_id}/bitstreams/{bitstream_id}")
     public Response deleteItemBitstream(@PathParam("item_id") Integer itemId, @PathParam("bitstream_id") Integer bitstreamId,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                        @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                        @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -912,7 +923,7 @@ public class ItemsResource extends Resource
 
     /**
      * Find items by one metadada field.
-     * 
+     *
      * @param metadataEntry
      *            Metadata field to search by.
      * @param scheme
@@ -935,8 +946,8 @@ public class ItemsResource extends Resource
     @Path("/find-by-metadata-field")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Item[] findItemsByMetadataField(MetadataEntry metadataEntry, @QueryParam("expand") String expand,
-            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
-            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+                                           @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+                                           @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
             throws WebApplicationException
     {
 
@@ -965,7 +976,7 @@ public class ItemsResource extends Resource
              *     log.error("Finding failed, bad metadata key.");
              *     throw new WebApplicationException(Response.Status.NOT_FOUND);
              * }
-             * 
+             *
              * if (itemIterator.hasNext()) {
              * item = new Item(itemIterator.next(), "", context);
              * }
@@ -1051,7 +1062,7 @@ public class ItemsResource extends Resource
      * Find item from DSpace database. It is encapsulation of method
      * org.dspace.content.Item.find with checking if item exist and if user
      * logged into context has permission to do passed action.
-     * 
+     *
      * @param context
      *            Context of actual logged user.
      * @param id
