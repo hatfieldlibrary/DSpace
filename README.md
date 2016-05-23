@@ -12,6 +12,8 @@ See commits to check out the file changes.
 
 
 
+## DSpace Documentation
+
 DSpace version information can be viewed online at
  - https://wiki.duraspace.org/display/DSDOC/
 
