@@ -1,7 +1,12 @@
 ## 5.5 Deployment Repo
 
-This repo contains a copy of DSpace 5.5 that is being prepared for deployment.  It contains updated REST and authentication classes and configuration.  The v5.5 tag contains only essential additions,
-no WU-specific customization to the xmlui.  (This can be used later to create a simplified xmlui for use by administrators.)  The master branch contains updates for our current WU design.
+This repo contains DSpace 5.5 that is prepared for deployment.  
+
+It contains our dspace-rest implementation changes, authentication plugins, and configuration.  
+
+The v5.5 tag contains only the essential stuff, with no WU-specific customization to the xmlui.  (This can be used later to create a simplified xmlui for use by administrators.)  
+
+The master branch contains updates for our current WU design.
 
 See commits to check out the file changes.
 
