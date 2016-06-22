@@ -127,6 +127,7 @@ public class Collection extends DSpaceObject {
             boolean canSubmit = AuthorizeManager.authorizeActionBoolean(context, collection, Constants.ADD);
             boolean canAdminister = AuthorizeManager.authorizeActionBoolean(context, collection, Constants.ADMIN);
             boolean canWrite = AuthorizeManager.authorizeActionBoolean(context, collection, Constants.WRITE);
+            log.info("Got permissions " + canSubmit + " " + canAdminister + " " + canWrite);
             this.setPermission(new Permission(canSubmit, canAdminister, canWrite));
 
         } else {

@@ -298,6 +298,7 @@ public class Resource
         int[] specialGroups = getGroups(headers);
         if (specialGroups != null) {
             for (int i = 0; i < specialGroups.length; i++) {
+                log.info("Setting special group: " + specialGroups[i]);
                 context.setSpecialGroup(specialGroups[i]);
             }
         }

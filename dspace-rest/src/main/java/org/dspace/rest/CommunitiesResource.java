@@ -76,16 +76,7 @@ public class CommunitiesResource extends Resource
         {
             context = createContext(getUser(headers));
 
-            /**
-             * Add groups to current context before returning eperson.
-             */
-            int[] specialGroups = getGroups(headers);
-
-            if (specialGroups != null) {
-                for (int i = 0; i < specialGroups.length; i++) {
-                    context.setSpecialGroup(specialGroups[i]);
-                }
-            }
+            setSpecialGroups(context, headers);
 
             log.debug("Special groups in communities " + context.getSpecialGroups().length);
 
