@@ -153,7 +153,8 @@ public class CommunitiesResource extends Resource
         {
             context = createContext(getUser(headers));
 
-            setSpecialGroups(context, headers);
+            // NOTE: This breaks access for unauthenticated users.  Find out why.
+           // setSpecialGroups(context, headers);
 
             org.dspace.content.Community[] dspaceCommunities = org.dspace.content.Community.findAll(context);
             communities = new ArrayList<Community>();
