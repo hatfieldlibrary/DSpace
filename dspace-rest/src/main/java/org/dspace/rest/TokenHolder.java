@@ -167,8 +167,7 @@ public class TokenHolder {
 
     public static synchronized  int[] getGroups(String token) {
 
-        log.info("Special Group Count: " + groups.get(token).length);
-
+        log.debug("Special Group Count: " + groups.get(token).length);
         return groups.get(token);
 
     }

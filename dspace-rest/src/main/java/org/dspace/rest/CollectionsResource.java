@@ -171,6 +171,8 @@ public class CollectionsResource extends Resource
         {
             context = createContext(getUser(headers));
 
+            setSpecialGroups(context, headers);
+
             if (!((limit != null) && (limit >= 0) && (offset != null) && (offset >= 0)))
             {
                 log.warn("Paging was badly set.");
@@ -256,6 +258,8 @@ public class CollectionsResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
 
             org.dspace.content.Collection dspaceCollection = findCollection(context, collectionId, org.dspace.core.Constants.READ);
             writeStats(dspaceCollection, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor,

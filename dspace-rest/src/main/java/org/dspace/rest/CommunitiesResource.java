@@ -238,6 +238,8 @@ public class CommunitiesResource extends Resource
         {
             context = createContext(getUser(headers));
 
+            setSpecialGroups(context, headers);
+
             org.dspace.content.Community[] dspaceCommunities = org.dspace.content.Community.findAllTop(context);
             communities = new ArrayList<Community>();
 
@@ -319,6 +321,8 @@ public class CommunitiesResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
 
             org.dspace.content.Community dspaceCommunity = findCommunity(context, communityId, org.dspace.core.Constants.READ);
             writeStats(dspaceCommunity, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers,
@@ -405,6 +409,8 @@ public class CommunitiesResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
 
             org.dspace.content.Community dspaceCommunity = findCommunity(context, communityId, org.dspace.core.Constants.READ);
             writeStats(dspaceCommunity, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers,

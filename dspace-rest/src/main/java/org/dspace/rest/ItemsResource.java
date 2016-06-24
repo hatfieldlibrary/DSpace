@@ -175,6 +175,8 @@ public class ItemsResource extends Resource
         {
             context = createContext(getUser(headers));
 
+            setSpecialGroups(context, headers);
+
             ItemIterator dspaceItems = org.dspace.content.Item.findAllUnfiltered(context);
             items = new ArrayList<Item>();
 
@@ -250,6 +252,9 @@ public class ItemsResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
+
             org.dspace.content.Item dspaceItem = findItem(context, itemId, org.dspace.core.Constants.READ);
 
             writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers, request, context);
@@ -309,6 +314,9 @@ public class ItemsResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
+
             org.dspace.content.Item dspaceItem = findItem(context, itemId, org.dspace.core.Constants.READ);
 
             writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers, request, context);
