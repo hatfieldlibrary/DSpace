@@ -142,6 +142,9 @@ public class BitstreamResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
+
             org.dspace.content.Bitstream dspaceBitstream = findBitstream(context, bitstreamId, org.dspace.core.Constants.READ);
             AuthorizeManager.getPolicies(context, dspaceBitstream);
 
@@ -204,6 +207,9 @@ public class BitstreamResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
+
             org.dspace.content.Bitstream[] dspaceBitstreams = org.dspace.content.Bitstream.findAll(context);
 
             if (!((limit != null) && (limit >= 0) && (offset != null) && (offset >= 0)))
@@ -286,6 +292,9 @@ public class BitstreamResource extends Resource
         try
         {
             context = createContext(getUser(headers));
+
+            setSpecialGroups(context, headers);
+
             org.dspace.content.Bitstream dspaceBitstream = findBitstream(context, bitstreamId, org.dspace.core.Constants.READ);
 
             writeStats(dspaceBitstream, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers,
