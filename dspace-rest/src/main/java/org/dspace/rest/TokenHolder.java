@@ -61,8 +61,6 @@ public class TokenHolder {
         org.dspace.core.Context context = null;
         String token = null;
 
-        log.info("before try ");
-
         try {
 
             log.info("getting context ");
@@ -166,9 +164,11 @@ public class TokenHolder {
     }
 
     public static synchronized  int[] getGroups(String token) {
-
-        log.debug("Special Group Count: " + groups.get(token).length);
-        return groups.get(token);
+        // Make sure we have a valid token.
+        if (token != null) {
+            return groups.get(token);
+        }
+        return null;
 
     }
 
