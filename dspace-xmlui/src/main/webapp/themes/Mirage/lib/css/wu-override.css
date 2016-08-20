@@ -142,7 +142,7 @@ h1.ds-option-set-head {
     max-width: 62.5rem;
 }
 #content-container {
-    background-image: url(/dspace5/themes/Mirage/images/masthead-bottom-img.jpg),url(/dspace5/themes/Mirage/images/background-grain.jpg);
+    background-image: url(/xmlui/themes/Mirage/images/masthead-bottom-img.jpg),url(/xmlui/themes/Mirage/images/background-grain.jpg);
     background-repeat: no-repeat,repeat-x;
     background-position: top center,top center;
 }
@@ -158,7 +158,7 @@ h1.ds-option-set-head {
 .ds-simple-list-item a,
 .ds-simple-list-item a:visited
 {
-    color: #108f98;
+    color: #9A302F;
 }
 #ds-trail li,
 #ds-trail a {

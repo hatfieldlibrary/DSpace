@@ -303,10 +303,10 @@
 
         <div class="row collapse" id="ac-header">
             <div class=" show-for-large-up  header-container-desktop">
-                <a href="http://libmedia.willamette.edu"><img src="/dspace5/themes/Mirage/images/acom_header.png"/></a>
+                <a href="http://libmedia.willamette.edu"><img src="/xmlui/themes/Mirage/images/acom_header.png"/></a>
             </div>
             <div class=" hide-for-large-up ">
-                <a href="http://libmedia.willamette.edu"><img src="/dspace5/themes/Mirage/images/acom_header.png"/></a>
+                <a href="http://libmedia.willamette.edu"><img src="/xmlui/themes/Mirage/images/acom_header.png"/></a>
             </div>
         </div>
 
