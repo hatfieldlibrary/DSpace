@@ -1,0 +1,176 @@
+.header-container-desktop {
+    max-width: 62.5rem;
+    height: 70px;
+    margin-right: auto;
+    margin-left: auto;
+    padding: 17px;
+    padding-left: 28px;
+}
+#ds-body {
+    padding-left: 0;
+}
+h1 {
+    font-size: 2.0rem;
+}
+h2 {
+      font-size: 1.45rem;
+}
+a, a:visited, a:active {
+    color: #9A302F;
+}
+.button,
+.button:hover{
+    background-color: transparent;
+    border:none;
+}
+.pane {
+    background-color: #f3f1ec;
+    border: 1px solid #d8d0ba;
+}
+.administrative.tabbed ul.horizontal {
+    background-color: transparent;
+    border-bottom: 1px solid #d8d0ba;
+}
+.administrative.tabbed ul.horizontal li.active-tab {
+    background-color: #d8d4cd;
+    color: #eee;
+    border-bottom: none;
+}
+.administrative.tabbed ul.horizontal li {
+    border: 1px solid #d8d0ba;
+}
+.administrative.tabbed ul.horizontal li.active-tab  a {
+    text-decoration: none;
+    color: #888;
+}
+table {
+    border: none;
+}
+table tr.alt, table tr.even, table tr:nth-of-type(even) {
+    background: #edeceb;
+}
+textarea.ds-textarea-field, input.ds-text-field, input.ds-password-field {
+    border: 1px solid #e0dbc9;
+}
+input[type=date],
+input[type=datetime-local],
+input[type=datetime],
+input[type=email],
+input[type=month],
+input[type=number],
+input[type=password],
+input[type=search],
+input[type=tel],
+input[type=text],
+input[type=time],
+input[type=url],
+input[type=week],
+textarea {
+    border: 1px solid #e1d9c5;
+}
+.button.disabled, .button[disabled], button.disabled, button[disabled] {
+    background-color: transparent;
+    border: 0;
+}
+.ds-button-field, #aspect_eperson_StartRegistration_list_registration-progress li {
+    background-color: #419d9c;
+    border: 1px solid #419d9c;
+    padding: 9px 13px;
+    color: #FFFFFF;
+    font-weight: bold;
+    cursor: pointer;
+}
+textarea.ds-textarea-field, input.ds-text-field, input.ds-file-field, input.ds-button-field, input.ds-password-field {
+    margin-bottom: 10px;
+    margin-top: 5px;
+    font-size: 93%;
+}
+ul.ds-progress-list li.current input.ds-button-field,
+#aspect_eperson_StartRegistration_list_registration-progress li.current{
+    background-color: #419d9c;
+    border: 1px solid #419d9c;
+    text-transform: uppercase;
+}
+ul.ds-progress-list {
+    margin: 0 0 10px 0;
+    padding: 2px 0;
+    text-align: left;
+}
+.ds-add-button, label.ds-composite-component .ds-select-field {
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+.select-field {
+    margin-top: 10px;
+    margin-bottom: 6px;
+}
+.ds-button-field[disabled="disabled"], .ds-button-field.disabled, li.button.disabled input {
+    opacity: 0.55;
+    cursor: auto;
+}
+#ds-trail-wrapper {
+    background-color: transparent;
+    border-bottom: none;
+    margin: 0;
+    padding: 6px;
+    min-width: 100%;
+}
+#ds-options {
+    margin-top: 70px;
+}
+h1.ds-option-set-head {
+    background-color: rgb(247,245,240);
+    border: 1px solid rgb(247,245,240);
+    border-bottom: none;
+    margin-bottom: 0;
+}
+.artifact-title {
+    font-size: 100%;
+}
+.ds-artifact-item  {
+    list-style-type: none;
+}
+.ds-option-set {
+    background: #fff;
+}
+.row {
+    max-width: 100%;
+}
+#ds-content-wrapper {
+    margin-right:  auto;
+    margin-left: auto;
+    max-width: 62.5rem;
+}
+#content-container {
+    background-image: url(/dspace5/themes/Mirage/images/masthead-bottom-img.jpg),url(/dspace5/themes/Mirage/images/background-grain.jpg);
+    background-repeat: no-repeat,repeat-x;
+    background-position: top center,top center;
+}
+#ds-search-option-head,
+#ds-search-option {
+    display: none;
+}
+#ac-header {
+    background: #000;
+    height: 70px;
+    width: 100%;
+}
+.ds-simple-list-item a,
+.ds-simple-list-item a:visited
+{
+    color: #108f98;
+}
+#ds-trail li,
+#ds-trail a {
+    color: #185e63;
+}
+#ds-user-box a {
+    color: #333;
+}
+/* Hide the Browse option for now, since I don't see a way to drop it using xsl. */
+#ds-options h1:nth-of-type(0n+1)  {
+    display: none;
+}
+#aspect_viewArtifacts_Navigation_list_browse {
+    display: none;
+}

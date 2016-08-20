@@ -75,6 +75,7 @@
                 <map:parameter name="stylesheet.screen#5" value="lib/css/style.css"/>
                 <map:parameter name="stylesheet.screen#6" value="lib/css/authority-control.css"/>
                 <map:parameter name="stylesheet.screen#7" value="lib/css/wu.css"/>
+                <map:parameter name="stylesheet.screen#8" value="lib/css/wu-override.css"/>
 
             </map:transform>
             <map:transform type="IncludePageMeta">

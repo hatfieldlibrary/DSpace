@@ -70,7 +70,7 @@
                 </xsl:when>
                 <xsl:otherwise>
                     <div id="ds-main">
-                        <div class="row">
+
                             <!--The header div, complete with title, subtitle and other junk-->
                             <xsl:call-template name="buildHeader"/>
 
@@ -84,6 +84,8 @@
                             </div>
 
 
+                        <!-- max width container -->
+                        <div id="content-container" class="row">
                             <!--ds-content is a groups ds-body and the navigation together and used to put the clearfix on, center, etc.
                                 ds-content-wrapper is necessary for IE6 to allow it to center the page content-->
                             <div id="ds-content-wrapper">
@@ -177,18 +179,7 @@
                 </link>
             </xsl:for-each>
 
-            <!-- Add syndication feeds -->
-            <!--        <xsl:for-each select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='feed']">
-                        <link rel="alternate" type="application">
-                            <xsl:attribute name="type">
-                                <xsl:text>application/</xsl:text>
-                                <xsl:value-of select="@qualifier"/>
-                            </xsl:attribute>
-                            <xsl:attribute name="href">
-                                <xsl:value-of select="."/>
-                            </xsl:attribute>
-                        </link>
-                    </xsl:for-each> -->
+           <!-- Removed feeds -->
 
             <!--  Add OpenSearch auto-discovery link -->
             <xsl:if test="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='opensearch'][@qualifier='shortName']">
@@ -310,15 +301,12 @@
         placeholders for header images -->
     <xsl:template name="buildHeader">
 
-        <div class="row collapse">
-            <div class="small-8 show-for-large-up column">
-                <div id="homelink">
-                    <a class="logo" href="http://www.willamette.edu" title="Willamette University Home"></a>
-                    <a class="local_logo" href="/" title="Mark O. Hatfield Library"></a>
-                </div>
+        <div class="row collapse" id="ac-header">
+            <div class=" show-for-large-up  header-container-desktop">
+                <a href="http://libmedia.willamette.edu"><img src="/dspace5/themes/Mirage/images/acom_header.png"/></a>
             </div>
-            <div class="small-8 medium-8 large-4 column">
-                <a href="http://libmedia.willamette.edu" class="right"><img src="http://libmedia.willamette.edu/images/site/academiccommons_lg.png"/></a>
+            <div class=" hide-for-large-up ">
+                <a href="http://libmedia.willamette.edu"><img src="/dspace5/themes/Mirage/images/acom_header.png"/></a>
             </div>
         </div>
 
@@ -399,7 +387,6 @@
 
     </xsl:template>
 
-
     <!-- The header (distinct from the HTML head element) contains the title, subtitle, login box and various
         placeholders for header images -->
     <xsl:template name="buildTrail">
@@ -413,43 +400,24 @@
                         <xsl:apply-templates select="/dri:document/dri:meta/dri:pageMeta/dri:trail"/>
                     </xsl:otherwise>
                 </xsl:choose>
+
             </ul>
         </div>
     </xsl:template>
 
     <xsl:template match="dri:trail">
-        <!--put an arrow between the parts of the trail-->
-        <xsl:if test="position()>1">
-        </xsl:if>
-        <xsl:if test="position()=1">
-            <li class="ds-trail-link"><a href="http://libmedia.willamette.edu">Academic Commons</a></li>
 
+        <!-- Removed arrow between crumb links. -->
+
+        <xsl:if test="position()=1">
+            <li ><a href="http://libmedia.willamette.edu">Academic Commons</a></li>
         </xsl:if>
-        <li>
-            <xsl:attribute name="class">
-                <xsl:text>ds-trail-link </xsl:text>
-                <xsl:if test="position()=2">
-                    <xsl:text>first-link </xsl:text>
-                </xsl:if>
-                <xsl:if test="position()=last()">
-                    <xsl:text>last-link</xsl:text>
-                </xsl:if>
-            </xsl:attribute>
-            <!-- Determine whether we are dealing with a link or plain text trail link -->
-            <xsl:choose>
-                <xsl:when test="./@target">
-                    <a>
-                        <xsl:attribute name="href">
-                            <xsl:value-of select="./@target"/>
-                        </xsl:attribute>
-                        <xsl:apply-templates />
-                    </a>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates />
-                </xsl:otherwise>
-            </xsl:choose>
-        </li>
+        <xsl:if test="position()=2">
+            <li ><a href="http://libmedia.willamette.edu/ds/communities">Departments</a></li>
+        </xsl:if>
+
+        <!-- Removed remaining crumb elements  -->
+
     </xsl:template>
 
     <xsl:template name="cc-license">
@@ -538,38 +506,9 @@
                         </div>
                     </div>
                 </div>
-                <!--
-                           <div id="ds-footer-left">
-                               <a href="http://www.dspace.org/" target="_blank">DSpace software</a> copyright&#160;&#169;&#160;2002-2011&#160; <a href="http://www.duraspace.org/" target="_blank">Duraspace</a>
-                           </div>
-                           <div id="ds-footer-right">
-                               <span class="theme-by">Original theme by&#160;</span>
-                               <a title="@mire NV" target="_blank" href="http://atmire.com" id="ds-footer-logo-link">
-                               <span id="ds-footer-logo">&#160;</span>
-                               </a>
-                           </div>
-                  -->
-                <!--
-                         <div id="ds-footer-links">
-                             <a>
-                                 <xsl:attribute name="href">
-                                     <xsl:value-of
-                                             select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='contextPath'][not(@qualifier)]"/>
-                                     <xsl:text>/contact</xsl:text>
-                                 </xsl:attribute>
-                                 <i18n:text>xmlui.dri2xhtml.structural.contact-link</i18n:text>
-                             </a>
-                             <xsl:text> | </xsl:text>
-                             <a>
-                                 <xsl:attribute name="href">
-                                     <xsl:value-of
-                                             select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='contextPath'][not(@qualifier)]"/>
-                                     <xsl:text>/feedback</xsl:text>
-                                 </xsl:attribute>
-                                 <i18n:text>xmlui.dri2xhtml.structural.feedback-link</i18n:text>
-                             </a>
-                         </div>
-                         -->
+
+                <!-- Remove footer  -->
+
                 <!--Invisible link to HTML sitemap (for search engines) -->
                 <a class="hidden">
                     <xsl:attribute name="href">
@@ -750,98 +689,13 @@
     <!-- TODO: figure out why i18n tags break the go button -->
     <xsl:template match="dri:options">
         <div id="ds-options" >
-            <h3 id="ds-search-option-head" class="ds-option-set-head"><i18n:text>xmlui.dri2xhtml.structural.search</i18n:text></h3>
-            <div id="ds-search-option" class="ds-option-set">
-                <!-- The form, complete with a text box and a button, all built from attributes referenced
-                    from under pageMeta. -->
-                <form id="ds-search-form" method="post">
-                    <xsl:attribute name="action">
-                        <xsl:value-of select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='contextPath']"/>
-                        <xsl:value-of select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='search'][@qualifier='simpleURL']"/>
-                    </xsl:attribute>
-                    <fieldset>
-                        <div class="row collapse">
-                            <div class="small-10 columns">
-                                <input class="ds-text-field " type="text">
-                                    <xsl:attribute name="name">
-                                        <xsl:value-of select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='search'][@qualifier='queryField']"/>
-                                    </xsl:attribute>
-                                </input>
-                            </div>
-                            <div class="small-12 columns">
-                                <input class="ds-button-field postfix radius" name="submit" type="submit" i18n:attr="value" value="xmlui.general.go" >
 
-                                    <xsl:attribute name="onclick">
-                                <xsl:text>
-                                    var radio = document.getElementById(&quot;ds-search-form-scope-container&quot;);
-                                    if (radio != undefined &amp;&amp; radio.checked)
-                                    {
-                                    var form = document.getElementById(&quot;ds-search-form&quot;);
-                                    form.action=
-                                </xsl:text>
-                                        <xsl:text>&quot;</xsl:text>
-                                        <xsl:value-of select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='contextPath']"/>
-                                        <xsl:text>/handle/&quot; + radio.value + &quot;</xsl:text>
-                                        <xsl:value-of select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='search'][@qualifier='simpleURL']"/>
-                                        <xsl:text>&quot; ; </xsl:text>
-                                <xsl:text>
-                                    }
-                                </xsl:text>
-                                    </xsl:attribute>
-                                </input>
-                            </div>
-                            <xsl:if test="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='focus'][@qualifier='container']">
-                                <label>
-                                    <input id="ds-search-form-scope-all" type="radio" name="scope" value="" checked="checked"/>
-                                    <i18n:text>xmlui.dri2xhtml.structural.search</i18n:text>
-                                </label>
-                                <br/>
-                                <label>
-                                    <input id="ds-search-form-scope-container" type="radio" name="scope">
-                                        <xsl:attribute name="value">
-                                            <xsl:value-of select="substring-after(/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='focus'][@qualifier='container'],':')"/>
-                                        </xsl:attribute>
-                                    </input>
-                                    <xsl:choose>
-                                        <xsl:when test="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='focus'][@qualifier='containerType']/text() = 'type:community'">
-                                            <i18n:text>xmlui.dri2xhtml.structural.search-in-community</i18n:text>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <i18n:text>xmlui.dri2xhtml.structural.search-in-collection</i18n:text>
-                                        </xsl:otherwise>
+            <!-- Removed search box -->
 
-                                    </xsl:choose>
-                                </label>
-                            </xsl:if>
-                        </div>
-                    </fieldset>
-                </form>
-                <!-- Only add if the advanced search url is different from the simple search -->
-                <xsl:if test="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='search'][@qualifier='advancedURL'] != /dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='search'][@qualifier='simpleURL']">
-                    <!-- The "Advanced search" link, to be perched underneath the search box -->
-                    <a>
-                        <xsl:attribute name="href">
-                            <xsl:value-of select="/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='search'][@qualifier='advancedURL']"/>
-                        </xsl:attribute>
-                        <i18n:text>xmlui.dri2xhtml.structural.search-advanced</i18n:text>
-                    </a>
-                </xsl:if>
-            </div>
-
-            <!-- Once the search box is built, the other parts of the options are added -->
             <xsl:apply-templates />
 
-            <!-- DS-984 Add RSS Links to Options Box -->
-            <xsl:if test="count(/dri:document/dri:meta/dri:pageMeta/dri:metadata[@element='feed']) != 0">
-                <h3 id="ds-feed-option-head" class="ds-option-set-head">
-                    <i18n:text>xmlui.feed.header</i18n:text>
-                </h3>
-                <div id="ds-feed-option" class="ds-option-set">
-                    <ul>
-                        <xsl:call-template name="addRSSLinks"/>
-                    </ul>
-                </div>
-            </xsl:if>
+            <!-- Removed feed options -->
+
 
         </div>
     </xsl:template>
