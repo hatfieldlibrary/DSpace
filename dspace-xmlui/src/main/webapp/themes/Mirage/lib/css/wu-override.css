@@ -162,7 +162,14 @@ h1.ds-option-set-head {
 }
 #ds-trail li,
 #ds-trail a {
-    color: #185e63;
+    color: #9A302F;
+}
+.breadcrumbs>:before {
+    content: "|";
+    color: #42434b;
+}
+#ds-user-box {
+    top: 60px;
 }
 #ds-user-box a {
     color: #333;
