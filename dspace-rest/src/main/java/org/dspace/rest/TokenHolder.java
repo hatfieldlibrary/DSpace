@@ -63,20 +63,20 @@ public class TokenHolder {
 
         try {
 
-            log.info("getting context ");
             context = new org.dspace.core.Context();
             EPerson ePerson = null;
             // Set<Integer> specialGroups = null;
 
-            log.info("Seeking auth status ");
+            log.debug("Seeking auth status ");
             /**
              * Let AuthenticationManager handle calls authenticate methods in stack;
              */
             int authStatus = AuthenticationManager.authenticate(context, user.getEmail(), user.getPassword(), null, null);
 
-            log.info("Got auth status " + authStatus);
+            log.debug("Got auth status " + authStatus);
 
             if (authStatus == AuthenticationMethod.SUCCESS) {
+                log.info("Got user: " + context.getCurrentUser());
                 ePerson = context.getCurrentUser();
 
             }
@@ -102,6 +102,7 @@ public class TokenHolder {
                     persons.put(token, ePerson);
                     tokens.put(Integer.toString(ePerson.getID()), token);
 
+                    log.debug("Getting special groups");
                     /**
                      * Use AuthenticationManager to retrieve all special groups.
                      * Our special groups plugin accepts null for the request parameter.

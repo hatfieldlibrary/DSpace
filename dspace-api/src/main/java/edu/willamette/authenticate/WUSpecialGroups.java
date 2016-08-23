@@ -23,8 +23,7 @@ public class WUSpecialGroups implements AuthenticationMethod {
     /**
      * log4j category
      */
-    private static Logger log = Logger
-            .getLogger(WUSpecialGroups.class);
+    private static Logger log = Logger.getLogger(WUSpecialGroups.class.getSimpleName());
 
 
     /**

@@ -1,5 +1,6 @@
 package edu.willamette.authenticate;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authenticate.AuthenticationMethod;
@@ -30,8 +31,7 @@ public class RestAuthentication implements AuthenticationMethod {
     /**
      * log4j category
      */
-    private final static Logger log = Logger
-            .getLogger(RestAuthentication.class);
+    private final static Logger log = Logger.getLogger(RestAuthentication.class.getSimpleName());
 
 
     /**
@@ -219,19 +219,22 @@ public class RestAuthentication implements AuthenticationMethod {
                         // Register new user
                         EPerson eperson = EPerson.create(context);
                         eperson.setNetid(netid);
-                        // Retrieve first name, last name,
-                        // email from LDAP.
+                        // Retrieve first name, last name and email from LDAP.
                         map = ldap.getUserAttributes(context, netid);
 
-                        // Test to see if email address was found via ldap.
-                        // If no email, do not auto-register the user.
-                        if (map.get("email").length() > 0) {
+                        if (StringUtils.isEmpty(map.get("email"))) {
+
+                            log.warn("Failed to locate " + netid + " email address in LDAP.  No EPerson created.");
+                            context.restoreAuthSystemState();
+                            return NO_SUCH_USER;
+
+                        } else {
                             eperson.setEmail(map.get("email"));
                             eperson.setFirstName(map.get("firstName"));
                             eperson.setLastName(map.get("lastName"));
-                            // eperson.setMetadata("phone", map.get("phone"));
                             employeeType = map.get("employeeType");
                             eperson.setCanLogIn(true);
+
                             AuthenticationManager.initEPerson(context, request, eperson);
                             eperson.update();
                             context.commit();
@@ -239,14 +242,9 @@ public class RestAuthentication implements AuthenticationMethod {
                             // restore authorization
                             context.restoreAuthSystemState();
 
-                        } else {
-                            log.warn("Failed to locate " + netid + " email address in LDAP.  No EPerson created.");
-                            context.restoreAuthSystemState();
-                            return NO_SUCH_USER;
-
                         }
 
-                        log.info(LogManager.getHeader(context, "org/dspace/authenticate",
+                        log.debug(LogManager.getHeader(context, "org/dspace/authenticate",
                                 netid + ":  REST auto-register"));
                         log.info("Login successful. Setting netid to  " + netid + " and employeeType to " + employeeType);
 

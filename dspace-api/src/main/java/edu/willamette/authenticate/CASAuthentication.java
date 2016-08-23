@@ -1,5 +1,6 @@
 package edu.willamette.authenticate;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authenticate.AuthenticationMethod;
@@ -35,8 +36,7 @@ public class CASAuthentication implements AuthenticationMethod {
     /**
      * log4j category
      */
-    private final static org.apache.log4j.Logger log = Logger
-            .getLogger(CASAuthentication.class);
+    private final static org.apache.log4j.Logger log = Logger.getLogger(CASAuthentication.class.getSimpleName());
 
     @SuppressWarnings("unused")
     //  private static String casProxyvalidate; // URL to validate PT tickets
@@ -147,9 +147,10 @@ public class CASAuthentication implements AuthenticationMethod {
          * is not needed by our REST client, so we can immediately
          * return.
          */
-        if (request == null) {
+        if (request == null ) {
             return BAD_ARGS;
         }
+
 
         // ticked returned by implicit CAS login
         final String ticket = request.getParameter("ticket");
@@ -157,12 +158,12 @@ public class CASAuthentication implements AuthenticationMethod {
         // service string used in validation
         final String service = getServiceRequest(context, request);
 
-        log.info(LogManager.getHeader(context, "org/dspace/authenticate", "SERVICE = "
+        log.debug(LogManager.getHeader(context, "org/dspace/authenticate", "SERVICE = "
                 + service));
-        log.info(LogManager.getHeader(context, "login", " ticket: " + ticket));
-        log.info(LogManager.getHeader(context, "login", "service: " + service));
+        log.debug(LogManager.getHeader(context, "login", " ticket: " + ticket));
+        log.debug(LogManager.getHeader(context, "login", "service: " + service));
 
-        if (ticket != null ) {
+        if (ticket != null) {
             HashMap<String, String> map;
             try {
                 // Get the CAS validation URL
@@ -176,14 +177,12 @@ public class CASAuthentication implements AuthenticationMethod {
                             "No CAS validation URL specified. You need to set property 'cas.validate.url'");
                 }
 
-                // Validate ticket (it's assumed that CAS validator returns the
-                // user network ID)
+                // Validate ticket (it's assumed that CAS validator returns the user network ID)
                 netid = validate(service, ticket, validate);
 
                 if (netid == null) {
                     log.error("netid not returned by validation service: invalid ticket?");
-                    throw new ServletException("Ticket '" + ticket
-                            + "' is not valid");
+                    throw new ServletException("Ticket '" + ticket + "' is not valid");
                 }
 
                 // Locate the eperson in DSpace
@@ -243,25 +242,27 @@ public class CASAuthentication implements AuthenticationMethod {
                         // Retrieve first name, last name,
                         // email, and phone from LDAP.
                         map = ldap.getUserAttributes(context, netid);
-                        eperson.setEmail(map.get("email"));
-                        eperson.setFirstName(map.get("firstName"));
-                        eperson.setLastName(map.get("lastName"));
-                        // eperson.setMetadata("phone", map.get("phone"));
 
-                        employeeType = map.get("employeeType");
+                        if (StringUtils.isEmpty(map.get("email"))) {
+                            log.warn("Failed to locate " + netid + " email address in LDAP.  No EPerson created.");
+                            context.restoreAuthSystemState();
+                            return NO_SUCH_USER;
+                        } else {
+                            eperson.setEmail(map.get("email"));
+                            eperson.setFirstName(map.get("firstName"));
+                            eperson.setLastName(map.get("lastName"));
+                            // eperson.setMetadata("phone", map.get("phone"));
+                            employeeType = map.get("employeeType");
+                            eperson.setCanLogIn(true);
+                            AuthenticationManager.initEPerson(context, request, eperson);
+                            eperson.update();
+                            context.commit();
+                            // restore authorization
+                            context.restoreAuthSystemState();
+                            context.setCurrentUser(eperson);
+                        }
 
-                        eperson.setCanLogIn(true);
-                        AuthenticationManager.initEPerson(context, request,
-                                eperson);
-                        eperson.update();
-                        context.commit();
-
-                        // restore authorization
-                        context.restoreAuthSystemState();
-
-                        context.setCurrentUser(eperson);
-
-                        log.info(LogManager.getHeader(context, "org/dspace/authenticate",
+                        log.debug(LogManager.getHeader(context, "org/dspace/authenticate",
                                 netid + ":  CAS auto-register"));
                         log.info("Login successful. Setting netid to  " + netid + " and employeeType to " + employeeType);
 

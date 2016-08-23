@@ -151,6 +151,7 @@ public class SpeakerToLdap {
 
         // The search scope to use (default to 0)
         int ldap_search_scope_value = 0;
+
         try {
             ldap_search_scope_value = Integer.parseInt(ldap_search_scope
                     .trim());
@@ -165,6 +166,7 @@ public class SpeakerToLdap {
 
         // Set up environment for creating initial context
         Hashtable<String, Object> env = new Hashtable<String, Object>(11);
+
         env.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
                 "com.sun.jndi.ldap.LdapCtxFactory");
         env.put(javax.naming.Context.PROVIDER_URL, ldap_provider_url);
