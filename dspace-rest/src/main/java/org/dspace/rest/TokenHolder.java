@@ -59,6 +59,7 @@ public class TokenHolder {
     public static String login(User user) throws WebApplicationException {
 
         org.dspace.core.Context context = null;
+
         String token = null;
 
         try {

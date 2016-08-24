@@ -429,12 +429,12 @@
 
         <!-- Removed arrow between crumb links. -->
 
+        <!--<xsl:if test="position()=1">-->
+            <!--<li>-->
+                <!--<a href="http://libmedia.willamette.edu">Academic Commons</a>-->
+            <!--</li>-->
+        <!--</xsl:if>-->
         <xsl:if test="position()=1">
-            <li>
-                <a href="http://libmedia.willamette.edu">Academic Commons</a>
-            </li>
-        </xsl:if>
-        <xsl:if test="position()=2">
             <li>
                 <a href="http://libmedia.willamette.edu/ds/communities">Departments</a>
             </li>
@@ -443,7 +443,8 @@
         <!-- Determine whether we are dealing with a link or plain text trail link -->
         <!-- Modified to exclude unused crumb elements. -->
 
-            <xsl:if test="position()!=1 and position()!=2">
+            <!--<xsl:if test="position()!=1 and position()!=2">-->
+            <xsl:if test="position()!=1">
                 <li>
                 <xsl:choose>
                     <xsl:when test="./@target">
