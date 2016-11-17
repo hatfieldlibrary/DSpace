@@ -821,7 +821,7 @@
                             </xsl:if>
                             <xsl:apply-templates select="." mode="normalField"/>
                             <xsl:if test="dri:label">
-                                <br/>
+
                                 <xsl:apply-templates select="dri:label" mode="compositeComponent"/>
                             </xsl:if>
                         </label>

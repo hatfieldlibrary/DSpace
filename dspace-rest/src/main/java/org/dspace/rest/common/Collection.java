@@ -8,8 +8,10 @@
 package org.dspace.rest.common;
 
 import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.ItemIterator;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
 import javax.ws.rs.WebApplicationException;
@@ -34,6 +36,9 @@ public class Collection extends DSpaceObject {
     private Bitstream logo;
     private Community parentCommunity;
     private List<Community> parentCommunityList = new ArrayList<Community>();
+
+    // User authorization
+    private Permission permission;
 
     private List<Item> items = new ArrayList<Item>();
 
@@ -61,7 +66,7 @@ public class Collection extends DSpaceObject {
         this.setIntroductoryText(collection.getMetadata(org.dspace.content.Collection.INTRODUCTORY_TEXT));
         this.setShortDescription(collection.getMetadata(org.dspace.content.Collection.SHORT_DESCRIPTION));
         this.setSidebarText(collection.getMetadata(org.dspace.content.Collection.SIDEBAR_TEXT));
-        
+
         if(expandFields.contains("parentCommunityList") || expandFields.contains("all")) {
             org.dspace.content.Community[] parentCommunities = collection.getCommunities();
             for(org.dspace.content.Community parentCommunity : parentCommunities) {
@@ -111,11 +116,22 @@ public class Collection extends DSpaceObject {
             }
         }
         else {
-        	this.addExpand("logo");
+            this.addExpand("logo");
         }
 
         if(!expandFields.contains("all")) {
             this.addExpand("all");
+        }
+
+        if(expandFields.contains("permission") | expandFields.contains("all")) {
+            boolean canSubmit = AuthorizeManager.authorizeActionBoolean(context, collection, Constants.ADD);
+            boolean canAdminister = AuthorizeManager.authorizeActionBoolean(context, collection, Constants.ADMIN);
+            boolean canWrite = AuthorizeManager.authorizeActionBoolean(context, collection, Constants.WRITE);
+            log.debug("Got permissions, submit: " + canSubmit + " admin: " + canAdminister + " write: " + canWrite);
+            this.setPermission(new Permission(canSubmit, canAdminister, canWrite));
+
+        } else {
+            this.addExpand("permission");
         }
 
         this.setNumberItems(collection.countItems());
@@ -142,18 +158,18 @@ public class Collection extends DSpaceObject {
     }
 
     public List<Item> getItems() {
-		return items;
-	}
+        return items;
+    }
 
-	public void setItems(List<Item> items) {
-		this.items = items;
-	}
+    public void setItems(List<Item> items) {
+        this.items = items;
+    }
 
-	public void setParentCommunityList(List<Community> parentCommunityList) {
-		this.parentCommunityList = parentCommunityList;
-	}
+    public void setParentCommunityList(List<Community> parentCommunityList) {
+        this.parentCommunityList = parentCommunityList;
+    }
 
-	public List<Community> getParentCommunityList() {
+    public List<Community> getParentCommunityList() {
         return parentCommunityList;
     }
 
@@ -169,35 +185,42 @@ public class Collection extends DSpaceObject {
         this.license = license;
     }
 
-	public String getCopyrightText() {
-		return copyrightText;
-	}
+    public String getCopyrightText() {
+        return copyrightText;
+    }
 
-	public void setCopyrightText(String copyrightText) {
-		this.copyrightText = copyrightText;
-	}
+    public void setCopyrightText(String copyrightText) {
+        this.copyrightText = copyrightText;
+    }
 
-	public String getIntroductoryText() {
-		return introductoryText;
-	}
+    public String getIntroductoryText() {
+        return introductoryText;
+    }
 
-	public void setIntroductoryText(String introductoryText) {
-		this.introductoryText = introductoryText;
-	}
+    public void setIntroductoryText(String introductoryText) {
+        this.introductoryText = introductoryText;
+    }
 
-	public String getShortDescription() {
-		return shortDescription;
-	}
+    public String getShortDescription() {
+        return shortDescription;
+    }
 
-	public void setShortDescription(String shortDescription) {
-		this.shortDescription = shortDescription;
-	}
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
 
-	public String getSidebarText() {
-		return sidebarText;
-	}
+    public String getSidebarText() {
+        return sidebarText;
+    }
 
-	public void setSidebarText(String sidebarText) {
-		this.sidebarText = sidebarText;
-	}
+    public void setSidebarText(String sidebarText) {
+        this.sidebarText = sidebarText;
+    }
+
+    public void setPermission(Permission permission) {this.permission = permission; }
+
+    public Permission getPermission() {
+        return permission;
+    }
+
 }

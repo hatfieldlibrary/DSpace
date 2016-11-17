@@ -639,6 +639,14 @@
             <version>1</version>
             <type>jar</type>
         </dependency>
+
+        <dependency>
+            <type>jar</type>
+            <groupId>org.jasig.cas.client</groupId>
+            <artifactId>cas-client-core</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+
     </dependencies>
 
 </project>
